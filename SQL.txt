@@ -1,0 +1,94 @@
+CREATE DATABASE IF NOT EXISTS staffing_system_v5 DEFAULT CHARACTER SET utf8mb4;
+USE staffing_system_v5;
+
+-- 1. ユーザー・権限管理
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('admin', 'staff') DEFAULT 'staff', -- 権限管理
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- 2. スタッフ個人情報
+CREATE TABLE staff_profile (
+    user_id INT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    birthday DATE,
+    address TEXT,
+    phone VARCHAR(20),
+    photo_url VARCHAR(255),
+    status ENUM('active', 'retired') DEFAULT 'active',
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- 3. スキル・資格管理
+CREATE TABLE skills (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(50) UNIQUE);
+CREATE TABLE staff_skills (
+    staff_id INT,
+    skill_id INT,
+    level ENUM('beginner', 'intermediate', 'advanced'),
+    years_of_exp INT,
+    PRIMARY KEY (staff_id, skill_id),
+    FOREIGN KEY (staff_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (skill_id) REFERENCES skills(id)
+) ENGINE=InnoDB;
+
+-- 4. 派遣先・クライアント
+CREATE TABLE clients (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    company_name VARCHAR(100) NOT NULL,
+    address TEXT,
+    phone VARCHAR(20),
+    contact_person VARCHAR(50)
+) ENGINE=InnoDB;
+
+-- 5. プロジェクト・単価管理
+CREATE TABLE projects (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    client_id INT,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    bill_rate INT, -- 顧客への請求単価（利益管理用）
+    start_date DATE,
+    end_date DATE,
+    status ENUM('planning', 'active', 'completed') DEFAULT 'planning',
+    FOREIGN KEY (client_id) REFERENCES clients(id)
+) ENGINE=InnoDB;
+
+-- 6. 勤務履歴・マッチング・評価
+CREATE TABLE assignments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    staff_id INT,
+    project_id INT,
+    start_date DATE,
+    end_date DATE,
+    FOREIGN KEY (staff_id) REFERENCES users(id),
+    FOREIGN KEY (project_id) REFERENCES projects(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE evaluations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    assignment_id INT,
+    evaluator_id INT, -- フィードバック分析用
+    score INT CHECK (score BETWEEN 1 AND 5),
+    feedback TEXT, -- 人柄評価
+    FOREIGN KEY (assignment_id) REFERENCES assignments(id),
+    FOREIGN KEY (evaluator_id) REFERENCES users(id)
+) ENGINE=InnoDB;
+
+-- 7. 給与・利益管理
+CREATE TABLE salary_settings (
+    staff_id INT PRIMARY KEY,
+    hourly_rate INT DEFAULT 0,
+    monthly_salary INT DEFAULT 0,
+    FOREIGN KEY (staff_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE payment_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    staff_id INT,
+    amount INT,
+    payment_date DATE,
+    FOREIGN KEY (staff_id) REFERENCES users(id)
+) ENGINE=InnoDB;
