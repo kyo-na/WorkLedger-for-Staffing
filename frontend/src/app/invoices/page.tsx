@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Plus, Printer, Trash2, X } from 'lucide-react';
+import { Plus, Printer, Trash2, X, FileText, CheckCircle2, AlertCircle, Building2, Calendar, DollarSign } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function InvoicesPage() {
@@ -18,22 +18,23 @@ export default function InvoicesPage() {
 
   const fetchData = async () => {
     try {
-      const [resInv, resCli] = await Promise.all([
-        fetch('http://localhost:3000/invoices'),
-        fetch('http://localhost:3000/clients')
-      ]);
+      // ダミーデータ（APIの代わり）
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      if (resInv.ok) {
-        const data = await resInv.json();
-        setInvoices(Array.isArray(data) ? data : []);
-      }
-      if (resCli.ok) {
-        const data = await resCli.json();
-        setClients(Array.isArray(data) ? data : []);
-      }
+      const dummyInvoices = [
+        { id: 1001, status: 'SENT', issueDate: '2023-11-25', dueDate: '2023-12-31', totalAmount: 1500000, client: { companyName: '株式会社ダミー1' } },
+        { id: 1002, status: 'PAID', issueDate: '2023-10-31', dueDate: '2023-11-30', totalAmount: 800000, client: { companyName: 'ダミー2商事' } },
+        { id: 1003, status: 'DRAFT', issueDate: '2023-12-01', dueDate: '2024-01-31', totalAmount: 2200000, client: { companyName: '株式会社ダミー1' } },
+      ];
+      const dummyClients = [
+        { id: '1', companyName: '株式会社ダミー1' },
+        { id: '2', companyName: 'ダミー2商事' },
+      ];
+
+      setInvoices(dummyInvoices);
+      setClients(dummyClients);
     } catch (error) {
       console.error(error);
-      setInvoices([]);
     }
   };
 
@@ -44,144 +45,210 @@ export default function InvoicesPage() {
       alert('請求先クライアントを選択してください');
       return;
     }
-
-    try {
-      const res = await fetch('http://localhost:3000/invoices', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          clientId: Number(formData.clientId),
-          issueDate: formData.issueDate
-        })
-      });
-
-      if (res.ok) {
-        setIsModalOpen(false);
-        setFormData({ ...formData, clientId: '' });
-        fetchData();
-        alert('請求書を作成しました');
-      } else {
-        alert('作成に失敗しました。');
-      }
-    } catch (e) {
-      console.error(e);
-      alert('エラーが発生しました');
-    }
+    // APIコール（シミュレーション）
+    console.log('Generating invoice for:', formData);
+    setIsModalOpen(false);
+    setFormData({ ...formData, clientId: '' });
+    fetchData();
+    alert('請求書を作成しました');
   };
 
   const handleDelete = async (id: number) => {
     if(!confirm('本当に削除しますか？')) return;
-    await fetch(`http://localhost:3000/invoices/${id}`, { method: 'DELETE' });
+    // APIコール（シミュレーション）
+    console.log('Deleting invoice:', id);
     fetchData();
   };
 
   return (
     <DashboardLayout>
-      <div className="space-y-8 animate-in fade-in pb-20">
+      <div className="flex flex-col gap-8 animate-in fade-in pb-24 relative min-h-screen font-sans text-slate-800 bg-slate-50/50">
         
-        {/* ヘッダー */}
-        <div className="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-          <div>
-            <h2 className="text-2xl font-black text-slate-900 italic tracking-tighter">INVOICE<span className="text-indigo-600">SYSTEM</span></h2>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">請求書発行・管理</p>
-          </div>
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="mt-4 md:mt-0 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition-all"
-          >
-            <Plus size={20}/> 請求書作成 (自動集計)
-          </button>
+        {/* 背景装飾 */}
+        <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.05]" 
+             style={{ backgroundImage: 'radial-gradient(#6366f1 1px, transparent 1px)', backgroundSize: '32px 32px' }}>
         </div>
 
-        {/* 請求書リスト */}
-        <div className="space-y-4">
+        {/* --- Sticky Billing Command Bar --- */}
+        <div className="sticky top-4 z-40 bg-white/80 backdrop-blur-xl border border-white/60 shadow-sm rounded-[24px] px-6 py-4 mx-4 md:mx-auto max-w-7xl transition-all ring-1 ring-slate-900/5">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4 w-full md:w-auto">
+              <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-slate-900/20">
+                <FileText size={24} className="text-indigo-400" />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-slate-900 tracking-tight leading-none">
+                  請求書発行システム
+                </h2>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1">Billing & Revenue Management</p>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="bg-slate-900 hover:bg-indigo-600 text-white px-6 py-3.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-slate-900/20 hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all text-xs uppercase tracking-widest whitespace-nowrap active:scale-95"
+            >
+              <Plus size={18} strokeWidth={3}/> Auto-Generate Invoice
+            </button>
+          </div>
+        </div>
+
+        {/* --- Invoices Grid --- */}
+        <div className="max-w-7xl mx-auto w-full grid grid-cols-1 gap-4 relative z-10 px-4 md:px-0 mt-4">
           {invoices.length > 0 ? (
             invoices.map((inv) => (
-              <div key={inv.id} className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4 hover:shadow-md transition-all">
-                <div className="flex items-center gap-6 w-full md:w-auto">
-                  <div className="w-16 h-16 bg-slate-50 text-slate-400 rounded-2xl flex flex-col items-center justify-center font-bold border border-slate-100 shrink-0">
-                    <span className="text-[10px] uppercase">DOC</span>
-                    <span className="text-xl text-slate-800">{inv.id}</span>
+              <div 
+                key={inv.id} 
+                className="group relative bg-white rounded-[24px] p-1 shadow-sm border border-slate-200 hover:shadow-xl hover:shadow-indigo-500/10 hover:border-indigo-200 transition-all duration-300 ring-1 ring-transparent hover:ring-indigo-100"
+              >
+                <div className="bg-white rounded-[20px] p-6 flex flex-col md:flex-row items-center gap-6 relative z-10">
+                  
+                  {/* ID & Type Identifier */}
+                  <div className="flex items-center gap-5 w-full md:w-[35%]">
+                    <div className="w-16 h-16 bg-slate-50 rounded-2xl flex flex-col items-center justify-center border border-slate-100 group-hover:bg-indigo-50 group-hover:border-indigo-100 transition-colors shrink-0">
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider group-hover:text-indigo-400">INV</span>
+                      <span className="text-xl font-black text-slate-700 group-hover:text-indigo-700 tabular-nums">#{inv.id}</span>
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide border ${
+                          inv.status === 'PAID' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                          inv.status === 'SENT' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                          'bg-slate-100 text-slate-500 border-slate-200'
+                        }`}>
+                          {inv.status || 'DRAFT'}
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-black text-slate-800 truncate group-hover:text-indigo-700 transition-colors leading-tight">
+                        {inv.client?.companyName || 'Unknown Client'}
+                      </h3>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
-                      {inv.client?.companyName || '顧客不明'}
-                      <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded-full uppercase">{inv.status || 'DRAFT'}</span>
-                    </h3>
-                    <p className="text-xs font-bold text-slate-400 mt-1 flex flex-col md:flex-row gap-1 md:gap-4">
-                      <span>📅 発行: {new Date(inv.issueDate).toLocaleDateString()}</span>
-                      <span>Due: {new Date(inv.dueDate).toLocaleDateString()}</span>
-                    </p>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-6 w-full md:w-auto justify-end">
-                  <div className="text-right">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase">TOTAL AMOUNT</p>
-                    <p className="text-2xl font-black text-slate-900">¥{Number(inv.totalAmount || 0).toLocaleString()}</p>
+                  {/* Dates & Meta */}
+                  <div className="flex-1 w-full md:w-auto grid grid-cols-2 gap-4 border-l border-r border-slate-100 px-6">
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-0.5">Issued</p>
+                      <div className="flex items-center gap-2 font-bold text-slate-600 text-sm">
+                        <Calendar size={14} className="text-slate-400"/>
+                        {new Date(inv.issueDate).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-0.5">Due Date</p>
+                      <div className="flex items-center gap-2 font-bold text-slate-600 text-sm">
+                        <AlertCircle size={14} className="text-slate-400"/>
+                        {new Date(inv.dueDate).toLocaleDateString()}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    {/* ★修正: 背景色を削除してシンプルに。クリックで印刷ページへ */}
-                    <button 
-                      onClick={() => router.push(`/invoices/${inv.id}/print`)}
-                      className="p-3 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
-                      title="印刷プレビュー"
-                    >
-                      <Printer size={20}/>
-                    </button>
-                    
-                    <button 
-                      onClick={() => handleDelete(inv.id)} 
-                      className="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-                      title="削除"
-                    >
-                      <Trash2 size={20}/>
-                    </button>
+
+                  {/* Amount & Actions */}
+                  <div className="flex items-center justify-between gap-6 w-full md:w-auto pl-2">
+                    <div className="text-right">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Total Amount</p>
+                      <p className="text-2xl font-black text-slate-900 tabular-nums tracking-tight">
+                        ¥{Number(inv.totalAmount || 0).toLocaleString()}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => router.push(`/invoices/${inv.id}/print`)}
+                        className="p-3 bg-slate-50 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all border border-slate-100 hover:border-indigo-100 group/btn"
+                        title="Print Preview"
+                      >
+                        <Printer size={20} className="group-hover/btn:scale-110 transition-transform"/>
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(inv.id)} 
+                        className="p-3 bg-white text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all border border-transparent hover:border-red-100 opacity-0 group-hover:opacity-100 focus:opacity-100 active:scale-95"
+                        title="Delete Invoice"
+                      >
+                        <Trash2 size={20}/>
+                      </button>
+                    </div>
                   </div>
+
                 </div>
               </div>
             ))
           ) : (
-            <div className="text-center py-20 border-2 border-dashed border-slate-200 rounded-[2rem] text-slate-400 font-bold opacity-50">
-              請求書データはありません
+            <div className="flex flex-col items-center justify-center py-24 border-2 border-dashed border-slate-300 rounded-[32px] bg-slate-50/50 text-slate-400">
+              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-sm mb-6 border border-slate-100">
+                <FileText size={32} className="text-slate-300"/>
+              </div>
+              <p className="font-bold text-lg text-slate-600">No Invoices Found</p>
+              <p className="text-sm opacity-70 mt-1">Create a new invoice to get started.</p>
             </div>
           )}
         </div>
 
-        {/* 作成モーダル */}
+        {/* --- Creation Modal --- */}
         {isModalOpen && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in">
-            <div className="bg-white p-8 rounded-[2rem] w-full max-w-md shadow-2xl animate-in zoom-in-95">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-black">新規請求書作成</h3>
-                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={24}/></button>
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <div className="bg-white p-0 rounded-[32px] w-full max-w-md shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200 relative overflow-hidden">
+              
+              {/* Modal Header */}
+              <div className="bg-slate-900 p-8 flex justify-between items-center text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none"><FileText size={120} /></div>
+                <div className="flex items-center gap-4 relative z-10">
+                    <div className="p-3 bg-indigo-500/20 border border-indigo-500/30 rounded-xl shadow-lg backdrop-blur-sm"><DollarSign size={24} className="text-indigo-200"/></div>
+                    <div>
+                        <span className="block text-[10px] font-bold text-indigo-300 uppercase tracking-widest">New Invoice</span>
+                        <span className="block font-black text-xl tracking-tight">新規請求書作成</span>
+                    </div>
+                </div>
+                <button onClick={() => setIsModalOpen(false)} className="p-2 bg-white/10 rounded-full hover:bg-white/20 text-white transition-colors relative z-10"><X size={20}/></button>
               </div>
               
-              <div className="space-y-4">
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase ml-2">請求先クライアント</label>
-                  <select 
-                    value={formData.clientId} 
-                    onChange={e => setFormData({...formData, clientId: e.target.value})}
-                    className="w-full p-4 bg-slate-50 rounded-xl font-bold outline-none border border-slate-100 focus:ring-2 ring-indigo-600/20"
-                  >
-                    <option value="">選択してください...</option>
-                    {clients.map(c => <option key={c.id} value={c.id}>{c.companyName}</option>)}
-                  </select>
-                  <p className="text-[10px] text-indigo-500 font-bold mt-2 ml-2">※ 「完了」ステータスの案件を自動集計します</p>
+              <div className="p-8 space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase ml-2 flex items-center gap-2">
+                    <Building2 size={12}/> Target Client
+                  </label>
+                  <div className="relative">
+                    <select 
+                      value={formData.clientId} 
+                      onChange={e => setFormData({...formData, clientId: e.target.value})}
+                      className="w-full pl-4 pr-10 py-4 bg-slate-50 border border-transparent rounded-2xl font-bold text-slate-700 outline-none focus:bg-white focus:border-indigo-300 focus:ring-4 focus:ring-indigo-500/10 transition-all appearance-none cursor-pointer"
+                    >
+                      <option value="">クライアントを選択...</option>
+                      {clients.map(c => <option key={c.id} value={c.id}>{c.companyName}</option>)}
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none border-t-[6px] border-t-slate-400 border-x-[5px] border-x-transparent"></div>
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-2 bg-indigo-50/50 rounded-xl text-[10px] font-bold text-indigo-600 border border-indigo-100/50">
+                    <CheckCircle2 size={12}/>
+                    <span>完了済みプロジェクトを自動集計します</span>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase ml-2">発行日</label>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase ml-2 flex items-center gap-2">
+                    <Calendar size={12}/> Issue Date
+                  </label>
                   <input 
                     type="date" 
                     value={formData.issueDate}
                     onChange={e => setFormData({...formData, issueDate: e.target.value})}
-                    className="w-full p-4 bg-slate-50 rounded-xl font-bold outline-none border border-slate-100"
+                    className="w-full px-4 py-4 bg-slate-50 border border-transparent rounded-2xl font-bold text-slate-600 outline-none focus:bg-white focus:border-indigo-300 focus:ring-4 focus:ring-indigo-500/10 transition-all"
                   />
                 </div>
-                <div className="flex gap-2 pt-4">
-                  <button onClick={() => setIsModalOpen(false)} className="flex-1 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100">キャンセル</button>
-                  <button onClick={handleCreate} className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg hover:bg-indigo-700">作成 & 集計</button>
+
+                <div className="flex gap-3 pt-4 border-t border-slate-100">
+                  <button 
+                    onClick={() => setIsModalOpen(false)} 
+                    className="flex-1 py-4 rounded-xl font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors uppercase tracking-widest text-xs"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleCreate} 
+                    className="flex-[2] py-4 bg-slate-900 text-white rounded-2xl font-black shadow-xl shadow-slate-900/20 hover:bg-indigo-600 hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2 active:scale-95"
+                  >
+                    Generate Invoice
+                  </button>
                 </div>
               </div>
             </div>

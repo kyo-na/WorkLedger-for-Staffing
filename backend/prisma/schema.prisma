@@ -13,73 +13,73 @@ model User {
   email     String   @unique
   password  String
   role      String   @default("staff") // admin or staff
-  staff     Staff?   
+  staff     Staff?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 // スタッフ基本情報
 model Staff {
-  id                 Int      @id @default(autoincrement())
-  userId             Int?     @unique 
-  user               User?    @relation(fields: [userId], references: [id])
-   
-  name               String
-  email              String   @unique
-  phone              String?
-  address            String?
-  avatarUrl          String?      
-  birthDate          DateTime?        
-   
-  status             String   @default("active")
-  password           String?  @default("password123")
+  id     Int   @id @default(autoincrement())
+  userId Int?  @unique
+  user   User? @relation(fields: [userId], references: [id])
 
-  skills             staff_skills[]
-  licenses           staff_licenses[]
-  salarySettings     salary_settings?
-  assignments        Assignment[]      
-  events             Event[]
-  
+  name      String
+  email     String    @unique
+  phone     String?
+  address   String?
+  avatarUrl String?
+  birthDate DateTime?
+
+  status   String  @default("active")
+  password String? @default("password123")
+
+  skills         staff_skills[]
+  licenses       staff_licenses[]
+  salarySettings salary_settings?
+  assignments    Assignment[]
+  events         Event[]
+
   // 経費・勤怠リレーション
   expenses           Expense[]
-  attendances        Attendance[] 
+  attendances        Attendance[]
   monthlyAttendances MonthlyAttendance[]
-  payrolls     Payroll[]
-   
-  created_at         DateTime @default(now())
-  updated_at         DateTime @updatedAt
+  payrolls           Payroll[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
 // スキルマスタ
 model skills {
-  id           Int      @id @default(autoincrement())
-  name         String   @unique
-  description  String?  @db.Text
+  id           Int            @id @default(autoincrement())
+  name         String         @unique
+  description  String?        @db.Text
   staff_skills staff_skills[]
 }
 
 // スキル紐付け
 model staff_skills {
-  id           Int      @id @default(autoincrement())
+  id           Int     @id @default(autoincrement())
   staff_id     Int
   skill_id     Int
-  level        String   @default("beginner")
-  years_of_exp Decimal  @default(0.0) @db.Decimal(5, 1)
-  skills       skills   @relation(fields: [skill_id], references: [id], onDelete: Cascade)
-  staff        Staff    @relation(fields: [staff_id], references: [id], onDelete: Cascade)
+  level        String  @default("beginner")
+  years_of_exp Decimal @default(0.0) @db.Decimal(5, 1)
+  skills       skills  @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+  staff        Staff   @relation(fields: [staff_id], references: [id], onDelete: Cascade)
 }
 
 // 資格マスタ
 model licenses {
-  id             Int      @id @default(autoincrement())
-  name           String?  @unique
-  description    String?  @db.Text
+  id             Int              @id @default(autoincrement())
+  name           String?          @unique
+  description    String?          @db.Text
   staff_licenses staff_licenses[]
 }
 
 // 資格紐付け
 model staff_licenses {
-  id            Int      @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
   staff_id      Int
   license_id    Int
   obtained_date DateTime? @db.Date
@@ -99,75 +99,75 @@ model salary_settings {
 
 // 顧客・派遣先企業
 model Client {
-  id            Int      @id @default(autoincrement())
+  id            Int     @id @default(autoincrement())
   companyName   String
   contactPerson String?
   email         String?
   phone         String?
   address       String?
-  status        String   @default("active") 
-   
-  projects      Project[]
-  invoices Invoice[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  status        String  @default("active")
+
+  projects  Project[]
+  invoices  Invoice[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 // プロジェクト・案件
 model Project {
-  id          Int      @id @default(autoincrement())
-  clientId    Int
-  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
-   
-  name        String    
-  description String?  @db.Text
+  id       Int    @id @default(autoincrement())
+  clientId Int
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String?   @db.Text
   startDate   DateTime
   endDate     DateTime?
-   
-  status      String   @default("planning") 
-  budget      Int?     @default(0)
-   
+
+  status String @default("planning")
+  budget Int?   @default(0)
+
   assignments Assignment[]
   expenses    Expense[]
-   
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // アサイン
 model Assignment {
-  id          Int      @id @default(autoincrement())
-  staffId     Int
-  projectId   Int
-  staff       Staff    @relation(fields: [staffId], references: [id])
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-   
-  role        String?
-  startDate   DateTime
-  endDate     DateTime?
-   
-  chargeRate  Int      @default(0)
-  costRate    Int      @default(0)
-   
-  color       String   @default("#3b82f6")
-  memo        String?  @db.Text
-  feedbacks    Feedback[]
-   
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        Int     @id @default(autoincrement())
+  staffId   Int
+  projectId Int
+  staff     Staff   @relation(fields: [staffId], references: [id])
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  role      String?
+  startDate DateTime
+  endDate   DateTime?
+
+  chargeRate Int @default(0)
+  costRate   Int @default(0)
+
+  color     String     @default("#3b82f6")
+  memo      String?    @db.Text
+  feedbacks Feedback[]
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // カレンダーイベント
 model Event {
   id          Int      @id @default(autoincrement())
-  title       String    
+  title       String
   start       DateTime
   end         DateTime
   allDay      Boolean  @default(false)
   description String?  @db.Text
   color       String   @default("#10b981")
-  staffId     Int?      
+  staffId     Int?
   staff       Staff?   @relation(fields: [staffId], references: [id], onDelete: SetNull)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -175,144 +175,144 @@ model Event {
 
 // 経費精算
 model Expense {
-  id          Int      @id @default(autoincrement())
-  staffId     Int
-  staff       Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
-  projectId   Int?
-  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  id        Int      @id @default(autoincrement())
+  staffId   Int
+  staff     Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  projectId Int?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   date        DateTime @db.Date
   category    String
   amount      Int
   description String?
   status      String   @default("pending")
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // 勤怠管理 (Attendance)
 model Attendance {
-  id             Int      @id @default(autoincrement())
-  staffId        Int
-  staff          Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
-  
-  date           DateTime @db.Date
-  startTime      DateTime?
-  endTime        DateTime?
-  breakTime      Int      @default(60)
-  
-  status         String   @default("working")
-  approvalStatus String   @default("draft")   // 日次承認ステータス
-  
-  memo           String?  @db.Text
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id      Int   @id @default(autoincrement())
+  staffId Int
+  staff   Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  date      DateTime  @db.Date
+  startTime DateTime?
+  endTime   DateTime?
+  breakTime Int       @default(60)
+
+  status         String @default("working")
+  approvalStatus String @default("draft") // 日次承認ステータス
+
+  memo String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([staffId, date])
 }
 
 // 月次勤怠ステータス管理 (MonthlyAttendance)
 model MonthlyAttendance {
-  id        Int      @id @default(autoincrement())
-  staffId   Int
-  year      Int
-  month     Int
-  status    String   @default("draft") // draft, applied, approved
-  
+  id      Int    @id @default(autoincrement())
+  staffId Int
+  year    Int
+  month   Int
+  status  String @default("draft") // draft, applied, approved
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  staff     Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
-  
+
+  staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
   @@unique([staffId, year, month])
 }
 
 // ★新規追加: 請求書（ヘッダー）
 model Invoice {
-  id          Int      @id @default(autoincrement())
-  clientId    Int
-  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  id            Int    @id @default(autoincrement())
+  clientId      Int
+  client        Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
   invoiceNumber String @unique
-  
-  issueDate   DateTime @db.Date // 発行日
-  dueDate     DateTime @db.Date // 支払期限
-  
-  subject     String   // 件名 (例: 2026年2月分 ご請求書)
-  
-  subtotal    Int      // 小計
-  tax         Int      // 消費税
-  totalAmount Int      // 合計請求額
-  
-  status      String   @default("draft") // draft(下書き), sent(送付済), paid(入金済), overdue(滞納)
-  note        String?  @db.Text
-  
-  items       InvoiceItem[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  issueDate DateTime @db.Date // 発行日
+  dueDate   DateTime @db.Date // 支払期限
+
+  subject String // 件名 (例: 2026年2月分 ご請求書)
+
+  subtotal    Int // 小計
+  tax         Int // 消費税
+  totalAmount Int // 合計請求額
+
+  status String  @default("draft") // draft(下書き), sent(送付済), paid(入金済), overdue(滞納)
+  note   String? @db.Text
+
+  items InvoiceItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // ★新規追加: 請求明細（行）
 model InvoiceItem {
-  id          Int      @id @default(autoincrement())
-  invoiceId   Int
-  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  
-  description String   // 品目・摘要 (例: 〇〇氏 技術支援費, 交通費など)
-  quantity    Decimal  @db.Decimal(10, 2) // 数量 (時間数など)
-  unitPrice   Int      // 単価
-  amount      Int      // 金額 (数量×単価)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        Int     @id @default(autoincrement())
+  invoiceId Int
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  description String // 品目・摘要 (例: 〇〇氏 技術支援費, 交通費など)
+  quantity    Decimal @db.Decimal(10, 2) // 数量 (時間数など)
+  unitPrice   Int // 単価
+  amount      Int // 金額 (数量×単価)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // ★新規追加: 給与明細
 model Payroll {
-  id          Int      @id @default(autoincrement())
-  staffId     Int
-  staff       Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  id      Int   @id @default(autoincrement())
+  staffId Int
+  staff   Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
 
-  year        Int
-  month       Int
-  
+  year  Int
+  month Int
+
   // 支給の部
-  baseAmount        Int @default(0) // 基本給 (時間×時給)
-  overtimeAmount    Int @default(0) // 残業手当 (今回は簡易的に0)
-  transportation    Int @default(0) // 交通費 (経費精算から)
-  allowance         Int @default(0) // その他手当
-  totalPayment      Int @default(0) // 総支給額
-  
+  baseAmount     Int @default(0) // 基本給 (時間×時給)
+  overtimeAmount Int @default(0) // 残業手当 (今回は簡易的に0)
+  transportation Int @default(0) // 交通費 (経費精算から)
+  allowance      Int @default(0) // その他手当
+  totalPayment   Int @default(0) // 総支給額
+
   // 控除の部
-  tax               Int @default(0) // 所得税 (今回は簡易的に10%などで計算)
-  socialInsurance   Int @default(0) // 社会保険料
-  totalDeduction    Int @default(0) // 総控除額
-  
+  tax             Int @default(0) // 所得税 (今回は簡易的に10%などで計算)
+  socialInsurance Int @default(0) // 社会保険料
+  totalDeduction  Int @default(0) // 総控除額
+
   // 差引支給額 (手取り)
-  netAmount         Int @default(0) 
-  
-  status      String   @default("draft") // draft(計算中), fixed(確定), paid(振込済)
-  note        String?  @db.Text
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  netAmount Int @default(0)
+
+  status String  @default("draft") // draft(計算中), fixed(確定), paid(振込済)
+  note   String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([staffId, year, month]) // 同じ月に重複作成しない
 }
 
 // ★新規追加: 顧客フィードバック
 model Feedback {
-  id           Int      @id @default(autoincrement())
+  id           Int        @id @default(autoincrement())
   assignmentId Int
   assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-  
-  rating       Int      @default(3) // 1:悪い 〜 5:とても良い
-  comment      String?  @db.Text    // 顧客からのコメント
-  recorder     String   // 記録者 (営業担当など)
-  
-  recordedAt   DateTime @default(now())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+
+  rating   Int     @default(3) // 1:悪い 〜 5:とても良い
+  comment  String? @db.Text // 顧客からのコメント
+  recorder String // 記録者 (営業担当など)
+
+  recordedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

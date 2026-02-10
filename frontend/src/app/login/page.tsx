@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Briefcase, Lock, Mail, ArrowRight } from 'lucide-react';
+import { Briefcase, Lock, Mail, ArrowRight, ShieldCheck } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -11,59 +11,90 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // ここで NestJS の /auth/login を叩き、JWTを取得する処理を後ほど実装
+    // 将来的な認証ロジックの実装箇所
     console.log('Login attempt:', { email, password });
-    router.push('/'); // 一旦トップへ
+    router.push('/');
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-6 font-sans">
-      <div className="max-w-md w-full bg-white rounded-[3.5rem] shadow-2xl overflow-hidden border border-white">
-        <div className="bg-slate-900 p-12 text-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/20 rounded-full -mr-16 -mt-16 blur-2xl"></div>
-          <div className="w-20 h-20 bg-blue-600 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-blue-600/40 relative z-10">
-            <Briefcase className="text-white" size={36} />
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 font-sans relative overflow-hidden">
+      
+      {/* 背景装飾: サイバーセキュリティ的な雰囲気 */}
+      <div className="absolute inset-0 z-0 opacity-[0.08] pointer-events-none" 
+           style={{ backgroundImage: 'linear-gradient(#4f46e5 1px, transparent 1px), linear-gradient(90deg, #4f46e5 1px, transparent 1px)', backgroundSize: '40px 40px' }}>
+      </div>
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-indigo-600 rounded-full blur-[150px] opacity-20 pointer-events-none -mr-32 -mt-32 animate-pulse"></div>
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500 rounded-full blur-[120px] opacity-10 pointer-events-none -ml-32 -mb-32"></div>
+
+      {/* ログインカード */}
+      <div className="max-w-[440px] w-full bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-[3rem] shadow-2xl relative z-10 overflow-hidden ring-1 ring-white/5">
+        
+        {/* ヘッダーエリア */}
+        <div className="p-12 pb-0 text-center">
+          <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-xl shadow-indigo-500/30 ring-4 ring-white/5 relative group">
+            <div className="absolute inset-0 bg-white/20 rounded-[2rem] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <Briefcase className="text-white drop-shadow-md" size={40} />
           </div>
-          <h1 className="text-3xl font-black text-white tracking-tighter uppercase italic relative z-10">
-            Staffing<span className="text-blue-500">Pro</span>
+          <h1 className="text-3xl font-black text-white tracking-tight leading-tight">
+            Work<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-blue-400">Ledger</span>
           </h1>
-          <p className="text-slate-500 text-[10px] font-black mt-2 uppercase tracking-[0.4em] relative z-10">Security Portal</p>
+          <div className="flex items-center justify-center gap-2 mt-3 opacity-80">
+             <div className="h-px w-8 bg-gradient-to-r from-transparent to-indigo-500"></div>
+             <p className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.3em]">Staffing Intelligence</p>
+             <div className="h-px w-8 bg-gradient-to-l from-transparent to-indigo-500"></div>
+          </div>
         </div>
 
-        <form onSubmit={handleLogin} className="p-12 space-y-8">
-          <div className="space-y-3">
-            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Account Email</label>
-            <div className="relative group">
-              <Mail className="absolute left-6 top-6 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={20} />
+        {/* フォームエリア */}
+        <form onSubmit={handleLogin} className="p-10 pt-8 space-y-6">
+          
+          <div className="space-y-2 group">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1.5 group-focus-within:text-indigo-400 transition-colors">
+              <Mail size={12} /> Email Identity
+            </label>
+            <div className="relative">
               <input 
                 type="email" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-16 pr-8 py-6 bg-slate-50 rounded-[1.8rem] border-none ring-2 ring-slate-100 focus:ring-4 focus:ring-blue-500/10 focus:bg-white outline-none font-bold transition-all text-slate-700"
-                placeholder="admin@admin.com" 
+                className="w-full pl-5 pr-5 py-4 bg-slate-800/50 border border-slate-700/50 rounded-2xl font-bold text-white outline-none focus:bg-slate-800 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 transition-all placeholder:text-slate-600 text-sm"
+                placeholder="admin@workledger.com" 
               />
             </div>
           </div>
 
-          <div className="space-y-3">
-            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Security Password</label>
-            <div className="relative group">
-              <Lock className="absolute left-6 top-6 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={20} />
+          <div className="space-y-2 group">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1.5 group-focus-within:text-indigo-400 transition-colors">
+              <Lock size={12} /> Secure Key
+            </label>
+            <div className="relative">
               <input 
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-16 pr-8 py-6 bg-slate-50 rounded-[1.8rem] border-none ring-2 ring-slate-100 focus:ring-4 focus:ring-blue-500/10 focus:bg-white outline-none font-bold transition-all text-slate-700"
+                className="w-full pl-5 pr-5 py-4 bg-slate-800/50 border border-slate-700/50 rounded-2xl font-bold text-white outline-none focus:bg-slate-800 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 transition-all placeholder:text-slate-600 text-sm"
                 placeholder="••••••••" 
               />
             </div>
           </div>
 
-          <button className="w-full bg-slate-900 hover:bg-blue-600 text-white py-6 rounded-[1.8rem] font-black shadow-2xl shadow-slate-900/20 flex items-center justify-center gap-4 transition-all active:scale-95 group">
-            <span className="tracking-widest text-sm">AUTHENTICATE</span>
-            <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />
+          <button className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white py-4 rounded-2xl font-black shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-3 transition-all hover:-translate-y-0.5 active:scale-[0.98] group mt-6 relative overflow-hidden">
+            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+            <ShieldCheck size={18} className="text-indigo-100 relative z-10" />
+            <span className="tracking-widest text-xs uppercase relative z-10">Authenticate</span>
+            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform relative z-10" />
           </button>
+
         </form>
+
+        {/* フッター */}
+        <div className="px-10 pb-8 text-center border-t border-white/5 pt-6 mx-10">
+          <p className="text-[10px] text-slate-500 font-medium flex items-center justify-center gap-2">
+            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+            Protected by Enterprise Grade Security
+          </p>
+        </div>
+
       </div>
     </div>
   );

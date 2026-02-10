@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { ChevronLeft, ChevronRight, User, FileCheck, Lock, Check } from 'lucide-react';
+import { 
+  ChevronLeft, ChevronRight, User, FileCheck, Lock, Check, 
+  Clock, AlertCircle, Calendar, ShieldCheck, PenTool, Search 
+} from 'lucide-react';
 
 export default function AttendancePage() {
   const [staffList, setStaffList] = useState<any[]>([]);
@@ -53,14 +56,13 @@ export default function AttendancePage() {
   const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
 
-  // 日次保存 (時間入力など)
+  // 日次保存
   const handleSave = async (date: Date, field: string, value: string) => {
     if (monthlyStatus === 'approved') return;
 
     const dateStr = date.toISOString().split('T')[0];
     const record = attendanceData.find(a => a.date.startsWith(dateStr)) || {};
     
-    // 現在の値を維持しつつ更新
     const payload = {
       staffId: selectedStaffId,
       date: dateStr,
@@ -75,7 +77,6 @@ export default function AttendancePage() {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
     });
     
-    // ★重要: 保存後にデータを再取得して、ボタンを有効化させる
     fetchData();
   };
 
@@ -87,7 +88,6 @@ export default function AttendancePage() {
     const record = attendanceData.find(a => a.date.startsWith(dateStr));
     if (!record) return; 
 
-    // 同じステータスなら変更しない
     if (record.approvalStatus === newStatus) return;
 
     const payload = {
@@ -107,7 +107,8 @@ export default function AttendancePage() {
   };
 
   const updateMonthlyStatus = async (status: string) => {
-    if (!confirm(`月次ステータスを「${status.toUpperCase()}」に変更しますか？`)) return;
+    const label = status === 'approved' ? '承認' : '申請中';
+    if (!confirm(`月次ステータスを「${label}」に変更しますか？`)) return;
     await fetch('http://localhost:3000/attendance/status', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -131,156 +132,249 @@ export default function AttendancePage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 animate-in fade-in pb-20">
+      <div className="flex flex-col h-[calc(100vh-6rem)] gap-6 relative font-sans text-slate-800 bg-slate-50/50">
         
-        {/* ヘッダー */}
-        <div className="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-          <div>
-            <h2 className="text-2xl font-black text-slate-900 italic tracking-tighter">ATTENDANCE<span className="text-indigo-600">SHEET</span></h2>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">勤務表・勤怠管理</p>
-          </div>
-          <div className="flex items-center gap-4 bg-slate-50 p-2 rounded-2xl">
-            <div className="relative">
-              <User className="absolute left-3 top-3 text-slate-400" size={16}/>
-              <select value={selectedStaffId} onChange={e => setSelectedStaffId(e.target.value)} className="pl-10 pr-4 py-2 bg-white rounded-xl font-bold outline-none border border-slate-200 text-sm w-48 focus:ring-2 ring-indigo-500/20">
+        {/* 背景装飾: テクニカルなグリッドパターン */}
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.04]" 
+             style={{ backgroundImage: 'radial-gradient(#6366f1 1px, transparent 1px)', backgroundSize: '24px 24px' }}>
+        </div>
+
+        {/* --- Command Center Header --- */}
+        <div className="flex-none sticky top-0 z-40 bg-white/80 backdrop-blur-xl border border-white/60 shadow-sm rounded-[20px] p-5 flex flex-col xl:flex-row items-center justify-between gap-5 ring-1 ring-slate-900/5 transition-all">
+          
+          {/* Left: Title & Staff Select */}
+          <div className="flex items-center gap-6 w-full xl:w-auto">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-slate-900/20">
+                <Clock size={28} className="text-emerald-400" />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                  勤怠マネジメント
+                </h2>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1 flex items-center gap-1.5">
+                   Time Tracking Intelligence
+                </p>
+              </div>
+            </div>
+
+            <div className="h-10 w-px bg-slate-200 hidden sm:block opacity-50"></div>
+
+            <div className="relative group w-full sm:w-64">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-indigo-500 transition-colors pointer-events-none" size={18}/>
+              <select 
+                value={selectedStaffId} 
+                onChange={e => setSelectedStaffId(e.target.value)} 
+                className="w-full pl-12 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white focus:border-indigo-300 transition-all appearance-none cursor-pointer hover:bg-white hover:border-slate-300"
+              >
                 {staffList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                <ChevronLeft className="-rotate-90" size={14}/>
+              </div>
             </div>
-            <div className="h-6 w-px bg-slate-200"></div>
-            <div className="flex items-center gap-2">
-              <button onClick={prevMonth} className="p-2 hover:bg-white rounded-lg"><ChevronLeft size={16}/></button>
-              <span className="font-black text-slate-700 w-32 text-center">{currentDate.getFullYear()}年 {currentDate.getMonth() + 1}月</span>
-              <button onClick={nextMonth} className="p-2 hover:bg-white rounded-lg"><ChevronRight size={16}/></button>
+          </div>
+
+          {/* Center: Date Navigator */}
+          <div className="flex items-center gap-3 bg-white border border-slate-200 p-1.5 rounded-xl shadow-sm w-full sm:w-auto justify-between sm:justify-start">
+            <button onClick={prevMonth} className="p-2.5 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors active:scale-95">
+              <ChevronLeft size={20} strokeWidth={2.5}/>
+            </button>
+            <div className="px-6 py-1 text-center min-w-[140px] border-x border-slate-100">
+              <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">対象期間</span>
+              <span className="block text-lg font-black text-slate-800 tabular-nums leading-none tracking-tight">
+                {currentDate.getFullYear()}年 <span className="text-indigo-600">{currentDate.getMonth() + 1}月</span>
+              </span>
             </div>
+            <button onClick={nextMonth} className="p-2.5 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors active:scale-95">
+              <ChevronRight size={20} strokeWidth={2.5}/>
+            </button>
+          </div>
+
+          {/* Right: Monthly Status Controller */}
+          <div className="flex items-center gap-3 w-full xl:w-auto justify-end">
+             <div className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border transition-colors ${
+               monthlyStatus === 'approved' 
+                 ? 'bg-emerald-50 border-emerald-100 text-emerald-700' 
+                 : monthlyStatus === 'applied'
+                 ? 'bg-blue-50 border-blue-100 text-blue-700'
+                 : 'bg-slate-50 border-slate-200 text-slate-500'
+             }`}>
+               <div className={`p-1.5 rounded-lg ${monthlyStatus === 'approved' ? 'bg-emerald-100' : monthlyStatus === 'applied' ? 'bg-blue-100' : 'bg-slate-200'}`}>
+                  {monthlyStatus === 'approved' ? <ShieldCheck size={16}/> : monthlyStatus === 'applied' ? <FileCheck size={16}/> : <PenTool size={16}/>}
+               </div>
+               <div className="flex flex-col">
+                 <span className="text-[9px] font-bold uppercase opacity-60 tracking-wider">Status</span>
+                 <span className="text-xs font-black capitalize leading-none">
+                   {monthlyStatus === 'draft' ? '作成中' : monthlyStatus === 'applied' ? '申請中' : '承認済(ロック)'}
+                 </span>
+               </div>
+             </div>
+
+             {monthlyStatus !== 'approved' ? (
+                <button onClick={() => updateMonthlyStatus('approved')} className="flex items-center gap-2 bg-slate-900 hover:bg-emerald-600 text-white px-6 py-3.5 rounded-xl font-bold text-xs shadow-lg shadow-slate-900/20 hover:shadow-emerald-500/30 transition-all uppercase tracking-wide active:scale-95">
+                  <Check size={16} strokeWidth={3}/> 承認完了
+                </button>
+              ) : (
+                <button onClick={() => updateMonthlyStatus('applied')} className="flex items-center gap-2 bg-white border border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 px-6 py-3.5 rounded-xl font-bold text-xs transition-all uppercase tracking-wide active:scale-95">
+                  <Lock size={16}/> ロック解除
+                </button>
+              )}
           </div>
         </div>
 
-        {/* 月次操作バー */}
-        <div className="bg-slate-900 text-white p-4 rounded-[1.5rem] shadow-lg flex items-center justify-between">
-           <div className="flex items-center gap-4 px-2">
-             <div className={`p-2 rounded-lg ${monthlyStatus === 'approved' ? 'bg-emerald-500' : 'bg-slate-700'}`}>
-               {monthlyStatus === 'approved' ? <Lock size={20}/> : <FileCheck size={20}/>}
-             </div>
-             <div>
-               <p className="text-[10px] font-bold opacity-70 uppercase">MONTHLY STATUS</p>
-               <p className="font-bold text-lg capitalize">{monthlyStatus === 'draft' ? 'Inputting (作成中)' : monthlyStatus === 'applied' ? 'Applied (申請中)' : 'Approved (承認済)'}</p>
-             </div>
-           </div>
-           <div className="flex gap-2">
-             {monthlyStatus !== 'approved' ? (
-                <button onClick={() => updateMonthlyStatus('approved')} className="bg-emerald-500 hover:bg-emerald-400 text-white px-5 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2">
-                  <Check size={16}/> 月次一括承認
-                </button>
-             ) : (
-                <button onClick={() => updateMonthlyStatus('applied')} className="bg-slate-700 hover:bg-slate-600 text-white px-5 py-2 rounded-xl font-bold text-sm transition-all">
-                  ロック解除
-                </button>
-             )}
-           </div>
-        </div>
-
-        {/* 勤怠テーブル */}
-        <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+        {/* --- Data Grid Container --- */}
+        <div className={`flex-1 bg-white border border-slate-200 rounded-[24px] shadow-xl overflow-hidden flex flex-col z-10 transition-all duration-500 ring-1 ring-slate-900/5 ${monthlyStatus === 'approved' ? 'grayscale opacity-90' : ''}`}>
+          
+          <div className="flex-1 overflow-auto custom-scrollbar relative">
             <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="p-4 text-xs font-black text-slate-400 uppercase w-20">Date</th>
-                  <th className="p-4 text-xs font-black text-slate-400 uppercase w-64 text-center">Workflow</th>
-                  <th className="p-4 text-xs font-black text-slate-400 uppercase w-32">Start</th>
-                  <th className="p-4 text-xs font-black text-slate-400 uppercase w-32">End</th>
-                  <th className="p-4 text-xs font-black text-slate-400 uppercase w-24">Break</th>
-                  <th className="p-4 text-xs font-black text-slate-400 uppercase w-24">Total</th>
-                  <th className="p-4 text-xs font-black text-slate-400 uppercase">Memo</th>
+              <thead className="sticky top-0 z-20 bg-slate-50/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+                <tr>
+                  <th className="p-4 pl-6 text-[10px] font-black text-slate-400 uppercase tracking-widest w-24">日付</th>
+                  <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest w-64 text-center">承認フロー</th>
+                  <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest w-32 text-center">開始時刻</th>
+                  <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest w-32 text-center">終了時刻</th>
+                  <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest w-24 text-center">休憩(分)</th>
+                  <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest w-24 text-right">実働時間</th>
+                  <th className="p-4 pr-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">備考・メモ</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              
+              <tbody className="divide-y divide-slate-100">
                 {days.map(day => {
                   const dateStr = day.toISOString().split('T')[0];
                   const record = attendanceData.find(a => a.date.startsWith(dateStr)) || {};
                   const isWeekend = day.getDay() === 0 || day.getDay() === 6;
                   
-                  // 現在のステータス (デフォルト: draft)
+                  // Status Logic
                   const currentStatus = record.approvalStatus || 'draft';
-                  
                   const startTimeStr = record.startTime ? new Date(record.startTime).toTimeString().slice(0, 5) : '';
                   const endTimeStr = record.endTime ? new Date(record.endTime).toTimeString().slice(0, 5) : '';
-
-                  // ★時間が入力されているか
+                  
                   const isFilled = !!(startTimeStr && endTimeStr);
-                  // ★月次ロック
                   const isLocked = monthlyStatus === 'approved';
-                  // ★操作可能か (入力済 かつ ロックされていない)
                   const canClick = isFilled && !isLocked;
 
-                  // ★選択状態の判定 (排他制御かつ、入力がある場合のみ色を付ける)
-                  const isDraft = isFilled && currentStatus === 'draft';
-                  const isApplied = isFilled && currentStatus === 'applied';
-                  const isApproved = isFilled && currentStatus === 'approved';
-
                   return (
-                    <tr key={dateStr} className={`hover:bg-slate-50/50 transition-colors ${isWeekend ? 'bg-slate-50/30' : ''}`}>
-                      <td className="p-4 font-bold text-slate-700">
-                        <span className={`inline-block w-6 ${day.getDay() === 0 ? 'text-red-400' : day.getDay() === 6 ? 'text-blue-400' : ''}`}>{day.getDate()}</span>
-                        <span className="text-xs text-slate-400 ml-1">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][day.getDay()]}</span>
+                    <tr key={dateStr} className={`group hover:bg-slate-50/80 transition-colors ${isWeekend ? 'bg-slate-50/60' : 'bg-white'}`}>
+                      
+                      {/* Date Column */}
+                      <td className="p-4 pl-6">
+                        <div className="flex flex-col items-center justify-center w-12 h-12 bg-white rounded-xl border border-slate-100 shadow-sm group-hover:shadow-md group-hover:border-indigo-100 transition-all">
+                          <span className={`text-lg font-black tabular-nums leading-none ${
+                            day.getDay() === 0 ? 'text-rose-500' : day.getDay() === 6 ? 'text-blue-500' : 'text-slate-700'
+                          }`}>
+                            {String(day.getDate()).padStart(2, '0')}
+                          </span>
+                          <span className={`text-[9px] font-bold uppercase mt-0.5 ${
+                             day.getDay() === 0 ? 'text-rose-300' : day.getDay() === 6 ? 'text-blue-300' : 'text-slate-300'
+                          }`}>
+                            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][day.getDay()]}
+                          </span>
+                        </div>
                       </td>
                       
-                      {/* ワークフローボタン */}
+                      {/* Workflow Column (Segmented Control) */}
                       <td className="p-4">
-                        <div className="flex items-center justify-center gap-1">
-                           
-                           {/* 決定 */}
-                           <button
-                             onClick={() => handleDayStatusChange(day, 'draft')}
-                             disabled={!canClick}
-                             className={`px-3 py-1 rounded-l-lg text-[10px] font-black uppercase border-r transition-all
-                             ${isDraft 
-                               ? 'bg-slate-800 text-white hover:bg-slate-700' 
-                               : 'bg-slate-100 text-slate-300 hover:bg-slate-200 hover:text-slate-400'}`}>
-                             決定
-                           </button>
-                           
-                           {/* 申請 */}
-                           <button 
-                             onClick={() => handleDayStatusChange(day, 'applied')}
-                             disabled={!canClick}
-                             className={`px-3 py-1 text-[10px] font-black uppercase border-r transition-all
-                             ${isApplied 
-                               ? 'bg-blue-500 text-white hover:bg-blue-600' 
-                               : 'bg-slate-100 text-slate-300 hover:bg-slate-200 hover:text-slate-400'}`}>
-                             申請
-                           </button>
+                        <div className="flex items-center justify-center p-1 bg-slate-100 rounded-lg w-fit mx-auto shadow-inner border border-slate-200">
+                          {['draft', 'applied', 'approved'].map((status) => {
+                             const isActive = currentStatus === status;
+                             const labels: {[key: string]: string} = { draft: '作成', applied: '申請', approved: '承認' };
+                             const colors: {[key: string]: string} = { 
+                               draft: 'bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 font-bold', 
+                               applied: 'bg-blue-500 text-white shadow-md shadow-blue-500/30 font-black', 
+                               approved: 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30 font-black' 
+                             };
 
-                           {/* 承認 */}
-                           <button 
-                             onClick={() => handleDayStatusChange(day, 'approved')}
-                             disabled={!canClick}
-                             className={`px-3 py-1 rounded-r-lg text-[10px] font-black uppercase transition-all
-                             ${isApproved 
-                               ? 'bg-emerald-500 text-white hover:bg-emerald-600' 
-                               : 'bg-slate-100 text-slate-300 hover:bg-slate-200 hover:text-slate-400'}`}>
-                             承認
-                           </button>
+                             return (
+                               <button
+                                 key={status}
+                                 onClick={() => handleDayStatusChange(day, status)}
+                                 disabled={!canClick && !isActive}
+                                 className={`
+                                   px-4 py-1.5 rounded-[6px] text-[10px] uppercase transition-all duration-200 relative
+                                   ${isActive && isFilled ? colors[status] : 'text-slate-400 hover:text-slate-600 font-medium'}
+                                   ${!canClick ? 'cursor-not-allowed opacity-50' : ''}
+                                 `}
+                               >
+                                 {labels[status]}
+                               </button>
+                             );
+                          })}
                         </div>
                       </td>
 
-                      <td className="p-4">
-                        <input type="time" defaultValue={startTimeStr} onBlur={e => handleSave(day, 'startTime', e.target.value)} disabled={isLocked} className="bg-slate-100 rounded-lg px-2 py-1 font-bold text-slate-700 focus:bg-white focus:ring-2 ring-indigo-500/20 w-full outline-none disabled:bg-transparent" />
+                      {/* Time Inputs (Stealth Mode) */}
+                      <td className="p-2">
+                        <div className="relative group/input">
+                          <input 
+                            type="time" 
+                            defaultValue={startTimeStr} 
+                            onBlur={e => handleSave(day, 'startTime', e.target.value)} 
+                            disabled={isLocked} 
+                            className="w-full text-center bg-transparent border border-transparent rounded-lg py-2.5 font-mono font-bold text-slate-700 outline-none focus:bg-white focus:border-indigo-300 focus:ring-4 focus:ring-indigo-500/10 focus:shadow-sm transition-all disabled:opacity-50 hover:bg-white hover:border-slate-200 hover:shadow-sm" 
+                          />
+                          {!startTimeStr && !isLocked && <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-slate-300 font-mono text-xs group-hover/input:hidden">--:--</div>}
+                        </div>
                       </td>
-                      <td className="p-4">
-                        <input type="time" defaultValue={endTimeStr} onBlur={e => handleSave(day, 'endTime', e.target.value)} disabled={isLocked} className="bg-slate-100 rounded-lg px-2 py-1 font-bold text-slate-700 focus:bg-white focus:ring-2 ring-indigo-500/20 w-full outline-none disabled:bg-transparent" />
+                      <td className="p-2">
+                        <div className="relative group/input">
+                           <input 
+                            type="time" 
+                            defaultValue={endTimeStr} 
+                            onBlur={e => handleSave(day, 'endTime', e.target.value)} 
+                            disabled={isLocked} 
+                            className="w-full text-center bg-transparent border border-transparent rounded-lg py-2.5 font-mono font-bold text-slate-700 outline-none focus:bg-white focus:border-indigo-300 focus:ring-4 focus:ring-indigo-500/10 focus:shadow-sm transition-all disabled:opacity-50 hover:bg-white hover:border-slate-200 hover:shadow-sm" 
+                          />
+                          {!endTimeStr && !isLocked && <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-slate-300 font-mono text-xs group-hover/input:hidden">--:--</div>}
+                        </div>
                       </td>
-                      <td className="p-4">
-                        <input type="number" defaultValue={record.breakTime || 60} onBlur={e => handleSave(day, 'breakTime', e.target.value)} disabled={isLocked} className="bg-slate-100 rounded-lg px-2 py-1 font-bold text-slate-700 focus:bg-white focus:ring-2 ring-indigo-500/20 w-full outline-none text-center disabled:bg-transparent" />
+                      <td className="p-2">
+                          <input 
+                            type="number" 
+                            defaultValue={record.breakTime || 60} 
+                            onBlur={e => handleSave(day, 'breakTime', e.target.value)} 
+                            disabled={isLocked} 
+                            className="w-full text-center bg-transparent border border-transparent rounded-lg py-2.5 font-mono font-bold text-slate-500 outline-none focus:bg-white focus:border-indigo-300 focus:ring-4 focus:ring-indigo-500/10 focus:shadow-sm transition-all disabled:opacity-50 hover:bg-white hover:border-slate-200 hover:shadow-sm" 
+                          />
                       </td>
-                      <td className="p-4 font-black text-slate-800">{calculateHours(record.startTime, record.endTime, record.breakTime)}</td>
-                      <td className="p-4"><input type="text" defaultValue={record.memo || ''} onBlur={e => handleSave(day, 'memo', e.target.value)} disabled={isLocked} placeholder="備考..." className="bg-transparent border-b border-transparent focus:border-indigo-300 w-full outline-none text-sm font-bold text-slate-600 disabled:text-slate-400" /></td>
+
+                      {/* Total Calculation */}
+                      <td className="p-4 text-right">
+                        <div className={`inline-block px-3 py-1 rounded-lg font-mono font-black text-lg tabular-nums ${calculateHours(record.startTime, record.endTime, record.breakTime) !== '-' ? 'bg-slate-100 text-slate-800' : 'text-slate-200'}`}>
+                          {calculateHours(record.startTime, record.endTime, record.breakTime)}
+                          <span className="text-[10px] text-slate-400 ml-1 font-sans font-bold">h</span>
+                        </div>
+                      </td>
+
+                      {/* Memo Input */}
+                      <td className="p-4 pr-6">
+                        <div className="relative">
+                           <input 
+                             type="text" 
+                             defaultValue={record.memo || ''} 
+                             onBlur={e => handleSave(day, 'memo', e.target.value)} 
+                             disabled={isLocked} 
+                             placeholder="備考入力..." 
+                             className="w-full bg-transparent border-b border-transparent focus:border-indigo-500 py-1.5 outline-none text-xs font-bold text-slate-600 placeholder:text-slate-300 disabled:text-slate-400 transition-colors hover:border-slate-200" 
+                           />
+                           {record.memo && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-indigo-500 rounded-full pointer-events-none shadow-sm"></div>}
+                        </div>
+                      </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
           </div>
+          
+          {/* Locked Overlay Indicator */}
+          {monthlyStatus === 'approved' && (
+            <div className="absolute bottom-8 right-8 z-50 flex items-center gap-3 bg-slate-900/90 backdrop-blur text-white px-5 py-3 rounded-full shadow-2xl pointer-events-none animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <Lock size={16} className="text-rose-400" />
+              <span className="text-xs font-bold uppercase tracking-widest border-l border-white/20 pl-3">Read Only Mode (Approved)</span>
+            </div>
+          )}
         </div>
       </div>
     </DashboardLayout>
