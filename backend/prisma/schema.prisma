@@ -116,6 +116,7 @@ model Client {
 // プロジェクト・案件
 model Project {
   id       Int    @id @default(autoincrement())
+  isHighStress Boolean @default(false) // これを追加
   clientId Int
   client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
@@ -154,6 +155,9 @@ model Assignment {
   feedbacks Feedback[]
 
   isActive  Boolean  @default(true)
+
+  importId    String?  // 例: "IMP-20240401-001"
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -315,4 +319,14 @@ model Feedback {
   recordedAt DateTime @default(now())
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+// 【監査】変更履歴を保存するテーブル
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  targetId    Int      // 変更されたAssignmentのID
+  action      String   // "CREATE", "UPDATE", "DELETE"
+  performedBy String   // 操作したユーザー名
+  diff        Json     // { before: ..., after: ... } の形式で差分を保存
+  timestamp   DateTime @default(now())
 }
